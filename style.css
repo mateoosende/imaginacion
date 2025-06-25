@@ -1,0 +1,12 @@
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+}
+
+button {
+  margin: 10px 5px;
+  padding: 8px 15px;
+  font-size: 1em;
+}

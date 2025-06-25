@@ -165,8 +165,9 @@ startBtn.addEventListener('click', () => {
   historial = [];
   historialLista.innerHTML = "";
   palabraActual.textContent = "";
-  startBtn.disabled = true;
-  stopBtn.disabled = false;
+  startBtn.classList.add('oculto');
+  stopBtn.classList.remove('oculto');
+
 
   mostrarPalabra(); // primera palabra inmediatamente
   intervaloID = setInterval(mostrarPalabra, segundos * 1000);
@@ -174,8 +175,9 @@ startBtn.addEventListener('click', () => {
 
 stopBtn.addEventListener('click', () => {
   clearInterval(intervaloID);
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
+  startBtn.classList.remove('oculto');
+  stopBtn.classList.add('oculto');
+
 
   historialLista.innerHTML = "";
   historial.forEach(palabra => {

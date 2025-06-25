@@ -5,8 +5,57 @@ body {
   margin: auto;
 }
 
+
+
+
 button {
   margin: 10px 5px;
-  padding: 8px 15px;
-  font-size: 1em;
+  padding: 20px 30px;
+  font-size: 1.5em;
+  border-radius: 10px;
+  border: none;
+  background-color: #444;
+  color: white;
+  cursor: pointer;
+  width: 100%;
+  max-width: 300px;
+}
+
+
+button:hover {
+  background-color: #555;
+}
+
+.oculto {
+  display: none !important;
+}
+
+#palabraActual {
+  font-size: 3em;
+  font-weight: bold;
+  color: #222;
+  text-align: center;
+  margin: 40px 0;
+}
+button:disabled {
+  background-color: #999;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  input[type="number"] {
+    font-size: 1.5em;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+  }
+
+  #palabraActual {
+    font-size: 2.5em;
+    text-align: center;
+  }
 }

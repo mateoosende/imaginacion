@@ -1,4 +1,8 @@
-const palabras = [
+from gtts import gTTS
+import os
+
+# Lista de palabras (igual que en tu const palabras)
+palabras = [
   "manzana", "pera", "plátano", "naranja", "uva", "fresa", "sandía", "melón", "piña", "limón",
   "pan", "queso", "leche", "huevo", "pollo", "arroz", "pasta", "carne", "pescado", "sal",
   "azúcar", "mantequilla", "tomate", "lechuga", "zanahoria", "cebolla", "pepino", "ajo", "vinagre",
@@ -99,71 +103,35 @@ const palabras = [
   "pila", "transformador", "cargador", "generador", "batería",
 
   "cuneta"
-];
+]
 
+output_folder = "audios"
 
-let todasLasPalabras = [...palabras];   // copia fija
-let palabrasDisponibles = [];           // se reiniciará cada vez
-let intervaloID = null;
-let historial = [];
+# Crear carpeta si no existe
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
 
-const intervaloInput = document.getElementById('intervalo');
-const palabraActual = document.getElementById('palabraActual');
-const historialLista = document.getElementById('historial');
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
+# Set de nombres esperados
+nombres_esperados = set(f"{p}.mp3" for p in palabras)
 
-function hablar(texto) {
-  const audio = new Audio(`audios/${texto}.mp3`);
-  audio.play();
-}
+# Limpiar audios sobrantes
+for archivo in os.listdir(output_folder):
+    if archivo.endswith(".mp3") and archivo not in nombres_esperados:
+        os.remove(os.path.join(output_folder, archivo))
+        print(f"🗑️ Eliminado sobrante: {archivo}")
 
+# Generar audios faltantes
+for palabra in palabras:
+    nombre_archivo = f"{palabra}.mp3"
+    file_path = os.path.join(output_folder, nombre_archivo)
 
+    if os.path.exists(file_path):
+        print(f"✔️ Ya existe: {nombre_archivo}")
+        continue
 
-function mostrarPalabra() {
-  if (palabrasDisponibles.length === 0) {
-    clearInterval(intervaloID);
-    palabraActual.textContent = "¡Todas las palabras han sido dictadas!";
-    return;
-  }
-
-  const index = Math.floor(Math.random() * palabrasDisponibles.length);
-  const palabra = palabrasDisponibles.splice(index, 1)[0]; // quita palabra sin repetir
-
-  palabraActual.textContent = palabra;
-  historial.push(palabra);
-  hablar(palabra);
-}
-
-startBtn.addEventListener('click', () => {
-  const segundos = parseFloat(intervaloInput.value);
-  if (isNaN(segundos) || segundos <= 0) {
-    alert("Introduce un intervalo válido.");
-    return;
-  }
-
-  // reinicio
-  historial = [];
-  historialLista.innerHTML = "";
-  palabraActual.textContent = "";
-  palabrasDisponibles = [...todasLasPalabras]; // reiniciar lista
-
-  startBtn.classList.add('oculto');
-  stopBtn.classList.remove('oculto');
-
-  mostrarPalabra(); // primera palabra inmediatamente
-  intervaloID = setInterval(mostrarPalabra, segundos * 1000);
-});
-
-stopBtn.addEventListener('click', () => {
-  clearInterval(intervaloID);
-  startBtn.classList.remove('oculto');
-  stopBtn.classList.add('oculto');
-
-  historialLista.innerHTML = "";
-  historial.forEach(palabra => {
-    const li = document.createElement("li");
-    li.textContent = palabra;
-    historialLista.appendChild(li);
-  });
-});
+    try:
+        tts = gTTS(text=palabra, lang='es', slow=False)
+        tts.save(file_path)
+        print(f"✅ Generado: {nombre_archivo}")
+    except Exception as e:
+        print(f"❌ Error al generar '{palabra}': {e}")

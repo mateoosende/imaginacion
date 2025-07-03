@@ -113,12 +113,31 @@ const historialLista = document.getElementById('historial');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 
+// Wake Lock
+let wakeLock = null;
+
+async function solicitarWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    console.log('Wake Lock activado');
+    wakeLock.addEventListener('release', () => {
+      console.log('Wake Lock liberado');
+    });
+  } catch (err) {
+    console.error(`${err.name}, ${err.message}`);
+  }
+}
+
+document.addEventListener("visibilitychange", async () => {
+  if (wakeLock !== null && document.visibilityState === 'visible') {
+    await solicitarWakeLock();
+  }
+});
+
 function hablar(texto) {
   const audio = new Audio(`audios/${texto}.mp3`);
   audio.play();
 }
-
-
 
 function mostrarPalabra() {
   if (palabrasDisponibles.length === 0) {
@@ -135,7 +154,9 @@ function mostrarPalabra() {
   hablar(palabra);
 }
 
-startBtn.addEventListener('click', () => {
+startBtn.addEventListener('click', async () => {
+  await solicitarWakeLock();
+
   const segundos = parseFloat(intervaloInput.value);
   if (isNaN(segundos) || segundos <= 0) {
     alert("Introduce un intervalo válido.");

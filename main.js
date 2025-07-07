@@ -101,18 +101,21 @@ const palabras = [
   "cuneta"
 ];
 
-
-let todasLasPalabras = [...palabras];
+// Variables principales
+let todasLasPalabras = [...palabras]; // <-- debes declarar 'palabras' arriba manualmente
 let palabrasDisponibles = [];
 let intervaloID = null;
 let historial = [];
 let reproduccionActiva = false;
+let indexRepaso = 0;
 
+// Elementos del DOM
 const intervaloInput = document.getElementById('intervalo');
 const palabraActual = document.getElementById('palabraActual');
 const historialLista = document.getElementById('historial');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
+const siguienteBtn = document.getElementById('siguienteBtn');
 
 // Wake Lock
 let wakeLock = null;
@@ -133,17 +136,17 @@ document.addEventListener("visibilitychange", async () => {
   }
 });
 
-// Reproductor de audio reutilizable
+// Audio
 let audio = new Audio();
 
 function hablar(texto, callback) {
   audio.src = `audios/${texto}.mp3`;
   audio.onended = () => {
-    if (reproduccionActiva) callback();
+    callback();
   };
   audio.play().catch(err => {
     console.error("Error al reproducir audio:", err);
-    callback(); // continuar aunque haya error
+    callback();
   });
 }
 
@@ -168,6 +171,7 @@ function mostrarPalabra() {
   });
 }
 
+// Botón Comenzar
 startBtn.addEventListener('click', async () => {
   await solicitarWakeLock();
 
@@ -185,15 +189,18 @@ startBtn.addEventListener('click', async () => {
 
   startBtn.classList.add('oculto');
   stopBtn.classList.remove('oculto');
+  siguienteBtn.classList.add('oculto');
+  siguienteBtn.disabled = false;
 
   mostrarPalabra();
 });
 
+// Botón Parar
 stopBtn.addEventListener('click', () => {
   reproduccionActiva = false;
   clearTimeout(intervaloID);
-  audio.pause();         // Detiene el audio actual
-  audio.currentTime = 0; // Reinicia por si se reanuda después
+  audio.pause();
+  audio.currentTime = 0;
 
   startBtn.classList.remove('oculto');
   stopBtn.classList.add('oculto');
@@ -204,4 +211,83 @@ stopBtn.addEventListener('click', () => {
     li.textContent = palabra;
     historialLista.appendChild(li);
   });
+
+  if (historial.length > 0) {
+    indexRepaso = 0;
+    palabraActual.textContent = "";
+    siguienteBtn.classList.remove('oculto');
+    siguienteBtn.disabled = false;
+  }
 });
+
+// Botón Siguiente
+siguienteBtn.addEventListener("click", decirSiguientePalabra);
+
+function decirSiguientePalabra() {
+  if (indexRepaso < historial.length) {
+    const palabra = historial[indexRepaso];
+    palabraActual.textContent = palabra;
+    hablar(palabra, () => {});
+    indexRepaso++;
+  } else {
+    palabraActual.textContent = "¡Fin del repaso!";
+    siguienteBtn.disabled = true;
+  }
+}
+
+// Reconocimiento de voz con tolerancia a errores
+try {
+  const reconocimiento = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  reconocimiento.lang = 'es-ES';
+  reconocimiento.continuous = true;
+
+  reconocimiento.onresult = function (event) {
+    const texto = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+    console.log("Reconocido:", texto);
+    if (esParecidoASiguiente(texto)) {
+      decirSiguientePalabra();
+    }
+  };
+
+  reconocimiento.onerror = function (event) {
+    console.error("Error de reconocimiento de voz:", event.error);
+  };
+
+  reconocimiento.start();
+} catch (e) {
+  console.warn("Reconocimiento de voz no compatible en este navegador.");
+}
+
+// Comprobación difusa de "siguiente"
+function esParecidoASiguiente(texto) {
+  texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // quitar tildes
+  const variantesAceptadas = [
+    "siguiente", "siguente", "sigiente", "sigiuente", "siguientes",
+    "si quiere", "si quieres", "seguiente", "si guente", "si hiente",
+    "si güente", "si jiente", "si giente", "siyiente"
+  ];
+
+  for (const variante of variantesAceptadas) {
+    if (texto.includes(variante)) return true;
+  }
+
+  const distancia = levenshtein(texto, "siguiente");
+  return distancia <= 3;
+}
+
+// Función de distancia de Levenshtein
+function levenshtein(a, b) {
+  const matrix = Array.from({ length: a.length + 1 }, (_, i) =>
+    Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+  );
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+  }
+  return matrix[a.length][b.length];
+}

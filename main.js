@@ -187,13 +187,21 @@ startBtn.addEventListener('click', async () => {
   palabrasDisponibles = [...todasLasPalabras];
   reproduccionActiva = true;
 
+  // Ocultar todo excepto botón parar y palabra actual
   startBtn.classList.add('oculto');
   stopBtn.classList.remove('oculto');
   siguienteBtn.classList.add('oculto');
   siguienteBtn.disabled = false;
 
+  document.querySelector('h1').classList.add('oculto');
+  document.querySelector('label[for="intervalo"]').classList.add('oculto');
+  intervaloInput.classList.add('oculto');
+  document.querySelector('h2:nth-of-type(2)').classList.add('oculto'); // Historial
+  historialLista.classList.add('oculto');
+
   mostrarPalabra();
 });
+
 
 // Botón Parar
 stopBtn.addEventListener('click', () => {
@@ -218,6 +226,12 @@ stopBtn.addEventListener('click', () => {
     siguienteBtn.classList.remove('oculto');
     siguienteBtn.disabled = false;
   }
+  document.querySelector('h1').classList.remove('oculto');
+  document.querySelector('label[for="intervalo"]').classList.remove('oculto');
+  intervaloInput.classList.remove('oculto');
+  document.querySelector('h2:nth-of-type(2)').classList.remove('oculto'); // Historial
+  historialLista.classList.remove('oculto');
+
 });
 
 // Botón Siguiente

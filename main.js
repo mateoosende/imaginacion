@@ -278,8 +278,13 @@ function esParecidoASiguiente(texto) {
   const variantesAceptadas = [
     "siguiente", "siguente", "sigiente", "sigiuente", "siguientes",
     "si quiere", "si quieres", "seguiente", "si guente", "si hiente",
-    "si güente", "si jiente", "si giente", "siyiente"
+    "si güente", "si jiente", "si giente", "siyiente", 
+    "va", "dale", "cambia", "otra",
+    "continúa", "continuación",
+    "adelante", "pasa", "sigue", "vamos", "anda",
+    "hazlo", "ahora", "paso", "listo", "ya está"
   ];
+
 
   for (const variante of variantesAceptadas) {
     if (texto.includes(variante)) return true;

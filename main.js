@@ -102,8 +102,8 @@ const palabras = [
 ];
 
 
-let todasLasPalabras = [...palabras];   // copia fija
-let palabrasDisponibles = [];           // se reiniciará cada vez
+let todasLasPalabras = [...palabras];
+let palabrasDisponibles = [];
 let intervaloID = null;
 let historial = [];
 
@@ -115,7 +115,6 @@ const stopBtn = document.getElementById('stopBtn');
 
 // Wake Lock
 let wakeLock = null;
-
 async function solicitarWakeLock() {
   try {
     wakeLock = await navigator.wakeLock.request('screen');
@@ -127,31 +126,43 @@ async function solicitarWakeLock() {
     console.error(`${err.name}, ${err.message}`);
   }
 }
-
 document.addEventListener("visibilitychange", async () => {
   if (wakeLock !== null && document.visibilityState === 'visible') {
     await solicitarWakeLock();
   }
 });
 
-function hablar(texto) {
-  const audio = new Audio(`audios/${texto}.mp3`);
-  audio.play();
+// Reproductor de audio reutilizable
+let audio = new Audio();
+
+function hablar(texto, callback) {
+  audio.src = `audios/${texto}.mp3`;
+  audio.onended = callback;
+  audio.play().catch(err => {
+    console.error("Error al reproducir audio:", err);
+    callback(); // continuar aunque haya error
+  });
 }
 
 function mostrarPalabra() {
   if (palabrasDisponibles.length === 0) {
-    clearInterval(intervaloID);
     palabraActual.textContent = "¡Todas las palabras han sido dictadas!";
     return;
   }
 
   const index = Math.floor(Math.random() * palabrasDisponibles.length);
-  const palabra = palabrasDisponibles.splice(index, 1)[0]; // quita palabra sin repetir
+  const palabra = palabrasDisponibles.splice(index, 1)[0];
 
   palabraActual.textContent = palabra;
   historial.push(palabra);
-  hablar(palabra);
+
+  hablar(palabra, () => {
+    if (palabrasDisponibles.length > 0) {
+      intervaloID = setTimeout(mostrarPalabra, parseFloat(intervaloInput.value) * 1000);
+    } else {
+      palabraActual.textContent = "¡Todas las palabras han sido dictadas!";
+    }
+  });
 }
 
 startBtn.addEventListener('click', async () => {
@@ -163,21 +174,19 @@ startBtn.addEventListener('click', async () => {
     return;
   }
 
-  // reinicio
   historial = [];
   historialLista.innerHTML = "";
   palabraActual.textContent = "";
-  palabrasDisponibles = [...todasLasPalabras]; // reiniciar lista
+  palabrasDisponibles = [...todasLasPalabras];
 
   startBtn.classList.add('oculto');
   stopBtn.classList.remove('oculto');
 
-  mostrarPalabra(); // primera palabra inmediatamente
-  intervaloID = setInterval(mostrarPalabra, segundos * 1000);
+  mostrarPalabra();
 });
 
 stopBtn.addEventListener('click', () => {
-  clearInterval(intervaloID);
+  clearTimeout(intervaloID);
   startBtn.classList.remove('oculto');
   stopBtn.classList.add('oculto');
 

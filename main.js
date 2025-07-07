@@ -279,7 +279,8 @@ function esParecidoASiguiente(texto) {
     "siguiente", "siguente", "sigiente", "sigiuente", "siguientes",
     "si quiere", "si quieres", "seguiente", "si guente", "si hiente",
     "si güente", "si jiente", "si giente", "siyiente", 
-    "va", "dale", "cambia", "otra",
+    "va", "vaaa", "ba",  "da", "na", "ra", "pa", "ca", "la" , "na",
+    "dale", "cambia", "otra",
     "continúa", "continuación",
     "adelante", "pasa", "sigue", "vamos", "anda",
     "hazlo", "ahora", "paso", "listo", "ya está"

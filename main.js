@@ -106,6 +106,7 @@ let todasLasPalabras = [...palabras];
 let palabrasDisponibles = [];
 let intervaloID = null;
 let historial = [];
+let reproduccionActiva = false;
 
 const intervaloInput = document.getElementById('intervalo');
 const palabraActual = document.getElementById('palabraActual');
@@ -137,7 +138,9 @@ let audio = new Audio();
 
 function hablar(texto, callback) {
   audio.src = `audios/${texto}.mp3`;
-  audio.onended = callback;
+  audio.onended = () => {
+    if (reproduccionActiva) callback();
+  };
   audio.play().catch(err => {
     console.error("Error al reproducir audio:", err);
     callback(); // continuar aunque haya error
@@ -145,6 +148,8 @@ function hablar(texto, callback) {
 }
 
 function mostrarPalabra() {
+  if (!reproduccionActiva) return;
+
   if (palabrasDisponibles.length === 0) {
     palabraActual.textContent = "¡Todas las palabras han sido dictadas!";
     return;
@@ -157,10 +162,8 @@ function mostrarPalabra() {
   historial.push(palabra);
 
   hablar(palabra, () => {
-    if (palabrasDisponibles.length > 0) {
+    if (palabrasDisponibles.length > 0 && reproduccionActiva) {
       intervaloID = setTimeout(mostrarPalabra, parseFloat(intervaloInput.value) * 1000);
-    } else {
-      palabraActual.textContent = "¡Todas las palabras han sido dictadas!";
     }
   });
 }
@@ -178,6 +181,7 @@ startBtn.addEventListener('click', async () => {
   historialLista.innerHTML = "";
   palabraActual.textContent = "";
   palabrasDisponibles = [...todasLasPalabras];
+  reproduccionActiva = true;
 
   startBtn.classList.add('oculto');
   stopBtn.classList.remove('oculto');
@@ -186,7 +190,11 @@ startBtn.addEventListener('click', async () => {
 });
 
 stopBtn.addEventListener('click', () => {
+  reproduccionActiva = false;
   clearTimeout(intervaloID);
+  audio.pause();         // Detiene el audio actual
+  audio.currentTime = 0; // Reinicia por si se reanuda después
+
   startBtn.classList.remove('oculto');
   stopBtn.classList.add('oculto');
 
